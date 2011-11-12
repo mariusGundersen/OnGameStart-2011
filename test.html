@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+
+<iframe src="demo.html#step2" style="width: 900px; height: 700px"></iframe>
+
+<script>
+var elm = document.getElementsByTagName("iframe")[0];
+document.addEventListener("keydown", function(e){
+	elm.contentWindow.Demo.rawEvent.onKeyDown(e);
+}, false);
+document.addEventListener("keyup", function(e){
+	elm.contentWindow.Demo.rawEvent.onKeyUp(e);
+}, false);
+</script>

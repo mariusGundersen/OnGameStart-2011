@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+
+<!--
+  Google HTML5 slide template
+
+  Authors: Luke Mahé (code)
+           Marcin Wichary (code and design)
+           
+           Dominic Mazzoni (browser compatibility)
+           Charles Chen (ChromeVox support)
+
+  URL: http://code.google.com/p/html5slides/
+-->
+
+<html>
+	<head>
+		<title>Building a 3D engine in HTML5</title>
+
+		<meta charset='utf-8'>
+		<script src='slides/slides.js'></script>
+	</head>
+
+	<body style='display: none'>
+
+	<section class='slides layout-regular'>
+
+		<article>
+			<h1>
+				Building a 3D engine in HTML5
+			</h1>
+			<p>
+				Marius Gundersen @GundersenMarius
+				<br>
+				September 2011
+			</p>
+		</article>
+		
+		<article>
+			<h3>Before we start</h3>
+			<ul>
+				<li>What is a 3D engine?
+				<li>And why build one in HTML5?
+				<ul class="build"><li>Because we can!</ul>
+			</ul>
+		</article>
+		
+		<article>
+			<h3>HTML5</h3>
+			<ul>
+				<li>Canvas tag</li>
+				<li>Fast JavaScript</li>
+			</ul>
+			<pre class="bottomLeft build" style="width: 100%;">&lt;canvas width="320" height="240" id="c"&gt;&lt;canvas&gt;
+&lt;script&gt;
+  var canvas = document.getElementById("c");
+  var ctx = canvas.getContext("2d");
+  ctx.fillStyle="red";
+  ctx.lineStyle="black";
+  ctx.fillRect(128, 96, 64, 48);
+  ctx.strokeRect(128, 96, 64, 48);
+&lt;/script&gt;<iframe class="bottomRight" style="width:322px; height:242px" src="figures/canvas.html" ></iframe>
+</pre>
+		</article>
+		
+		<article>
+			<h3>Why do we need a 3D engine?</h3>
+			<ul class="build">
+				<li>2D screen == 2D graphics</li>
+				<iframe style="width:322px; height:242px" src="figures/hexagon.html" ></iframe>
+				<li>Optical illusion
+			</ul>
+		</article>
+		
+		<article>
+			<h3>3D engine</h2>
+			<ul>
+				<li>Model (the world)
+				<li>View (the screen)
+				<li>Controller (the render function)
+			</ul>
+		</article>
+		
+		<article class="nobackground">
+			<iframe src='figures/triangle.html'></iframe>
+		</article>
+		
+		<article>
+			<h3>This Presentation</h2>
+			<ul>
+				<li>for each iteration</li>
+				<ul>
+					<li>Math
+					<li>Pseudocode
+					<li>JavaScript
+					<li>Demo
+				</ul>
+			</ul>
+		</article>
+		
+		<article>
+			<h2>
+				Projecting points
+			</h2>
+		</article>
+		   
+		<article>
+			<h3>
+			The world
+			</h3>
+			<section>
+			<pre>
+var world = {
+  vertices:[
+    {x:100, y:100, z: 500},
+    {x:-100, y:100, z: 500},
+    {x:-100, y:-100, z: 500},
+    {x:100, y:-100, z: 500},
+    {x:100, y:100, z: 300},
+    {x:-100, y:100, z: 300},
+    {x:-100, y:-100, z: 300},
+    {x:100, y:-100, z: 300},
+    
+  ]
+};
+			</pre>
+			</section>
+		</article>
+		   
+		<article>
+			<h3>
+			The camera
+			</h3>
+			<section>
+			<pre>
+var camera = {
+  depth: 350,
+  screen: Demo.ctx,
+  width: Demo.canvas.width,
+  height: Demo.canvas.height,
+  offsetX: Demo.canvas.width/2,
+  offsetY: Demo.canvas.height/2
+}
+			</pre>
+			</section>
+		</article>
+		   
+		<article>
+			<h3>
+			The render function (Pseudocode)
+			</h3>
+			<section>
+			<pre class="noprettyprint">
+for each vertex
+  project onto screen
+  draw on screen
+			</pre>
+			</section>
+		</article>
+		   
+		<article>
+			<h3>
+			The render function (JavaScript)
+			</h3>
+			<section>
+			<pre>
+function render(world, camera){
+  for(var i=0; i&lt;world.vertices.length; i++){
+    var vertex = world.vertices[i];
+	
+    var scale = camera.depth / vertex.z;
+    var posX = scale * vertex.x + camera.offsetX;
+    var posY = scale * vertex.y + camera.offsetY;
+    var size = scale * 10;
+	
+    camera.screen.fillRect(posX-size/2, posY-size/2, size, size);
+  }
+}
+			</pre>
+			</section>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#step1'></iframe>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#figure1'></iframe>
+		</article>
+		
+		<article>
+			<h2>
+				Moving the camera
+			</h2>
+		</article>
+		
+		<article class="nobackground">
+			<iframe src='demo.html#translation'></iframe>
+		</article>
+		   
+		<article>
+			<h3>
+			The camera with position
+			</h3>
+			<section>
+			<pre>
+var camera = {
+<b>  x: 0,
+  y: 0,
+  z: 0,</b>
+  depth: 350,
+  screen: Demo.ctx,
+  width: Demo.canvas.width,
+  height: Demo.canvas.height,
+  offsetX: Demo.canvas.width/2,
+  offsetY: Demo.canvas.height/2
+}
+			</pre>
+			</section>
+		</article>
+		   
+		<article>
+			<h3>
+			Camera movement (Pseudocode)
+			</h3>
+			<section>
+			<pre class="noprettyprint">
+for each vertex
+  <b>offset from camera</b>
+  project onto screen
+  draw on screen
+			</pre>
+			</section>
+		</article>
+		   
+		<article>
+			<h3>
+			The render function with camera movement
+			</h3>
+			<section>
+			<pre>
+...
+var vertex = world.vertices[i];
+
+<b>var dx = vertex.x - camera.x;
+var dy = vertex.y - camera.y;
+var dz = vertex.z - camera.z;
+</b>  
+var scale = camera.depth / <b>dz</b>;
+var posX = scale * <b>dx</b> + camera.offsetX;
+var posY = scale * <b>dy</b> + camera.offsetY;
+var size = scale * 10;
+...
+			</pre>
+			</section>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#step2'></iframe>
+		</article>
+		   
+		<article class="nobackground">
+			<iframe src='demo.html#reflection'></iframe>
+		  </article>
+		   
+		<article>
+			<h3>
+			Bugfix #1
+			</h3>
+			<section>
+			<pre>
+...
+
+var dz = vertex.z - camera.z;
+
+<b>if(dz > 0){</b>
+
+  var scale = camera.depth / dz;
+  var posX = scale * dx + camera.offsetX;
+  var posY = scale * dy + camera.offsetY;
+  var size = scale * 10;
+
+  camera.screen.fillRect(posX - size / 2, posY - size / 2, size, size);
+<b>}</b>
+...
+			</pre>
+			</section>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#step2b'></iframe>
+		</article>
+		
+		<article>
+			<h2>
+				Rotating the camera
+			</h2>
+		</article>
+		   
+		<article class="nobackground">
+			<iframe src='demo.html#rotation'></iframe>
+		</article>
+		
+		<article>
+			<h3>
+			Camera Rotation (Pseudocode)
+			</h3>
+			<section>
+			<pre class="noprettyprint">
+for each vertex
+  offset from camera
+  <b>rotate around each axis</b>
+  if in front of camera
+    project onto screen
+    draw on screen
+			</pre>
+			</section>
+		</article>
+		   
+		<article>
+			<h3>
+			Rotation around y-axis
+			</h3>
+			<section>
+			<pre>
+...
+var dx = vertex.x - camera.x;
+var dy = vertex.y - camera.y;
+var dz = vertex.z - camera.z;
+
+<b>var d1x = Math.cos(camera.ry)*dx + Math.sin(camera.ry)*dz;
+var d1y = dy;
+var d1z = Math.cos(camera.ry)*dz - Math.sin(camera.ry)*dx;</b>
+
+if(d1z > 0){
+...
+			</pre>
+			</section>
+		</article>
+		
+		<article>
+			<h3>
+			Rotation around all axis
+			</h3>
+			<section>
+			<pre>
+...
+
+var d1x = Math.cos(camera.ry)*dx + Math.sin(camera.ry)*dz;
+var d1y = dy;
+var d1z = Math.cos(camera.ry)*dz - Math.sin(camera.ry)*dx;
+
+<b>var d2x = d1x;
+var d2y = Math.cos(camera.rx)*d1y - Math.sin(camera.rx)*d1z;
+var d2z = Math.cos(camera.rx)*d1z + Math.sin(camera.rx)*d1y;
+
+var d3x = Math.cos(camera.rz)*d2x + Math.sin(camera.rz)*d2y;
+var d3y = Math.cos(camera.rz)*d2y - Math.sin(camera.rz)*d2x;
+var d3z = d2z;</b>
+
+if(d3z > 0){
+...
+			</pre>
+			</section>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#step3'></iframe>
+		</article>
+		
+		<article>
+			<img src="gfx/Fencer-anim.png" style="float: right"/>
+			<h2>
+				Sprites
+			</h2>
+		</article>
+		   
+		<article>
+			<h3>
+			Simple Sprites (Pseudocode)
+			</h3>
+			<section>
+			<pre class="noprettyprint">
+for each vertex
+  offset from camera
+  rotate around each axis
+  if in front of camera
+    project onto screen
+    draw <b>image</b> on screen
+			</pre>
+			</section>
+		</article>
+		
+		<article>
+			<h3>
+			Simple Sprites
+			</h3>
+			<section>
+			<pre>
+
+<b>var sprite = new Image();
+sprite.src = "gfx/tree.png";</b>
+
+...
+  if(d3z > 0){
+    var scale = camera.depth / d3z;	
+    var posX = scale * d3x + camera.offsetX;
+    var posY = scale * d3y + camera.offsetY;
+<b>    var width = scale * sprite.width;
+    var height = scale * sprite.height;
+
+    camera.screen.drawImage(sprite, 
+      0, 0, sprite.width, sprite.height, 
+      posX - width / 2, posY - height / 2, width, height);</b>
+    }
+			</pre>
+			</section>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#step4'></iframe>
+		</article>
+		   
+		<article>
+			<h3>
+			Bugfix #2 (Pseudocode)
+			</h3>
+			<section>
+			<pre class="noprettyprint">
+for each vertex
+  offset from camera
+  rotate around each axis
+  if in front of camera
+    project onto screen
+    <b>store in list
+sort list
+for each item in list</b>
+  draw image on screen
+			</pre>
+			</section>
+		</article>
+		
+		<article>
+			<h3>
+			Storing draw operations
+			</h3>
+			<section>
+			<pre>
+<b>var toDraw = [];</b>
+
+for(var i=0; i&lt;world.vertices.length; i++){
+  ...
+  if(d3z > 0){
+   ...
+<b>    toDraw.push({
+      posX: posX - width / 2,
+      posY: posY - height / 2,
+      posZ: scale,
+      width: width,
+      height: height
+    });</b>
+  }
+}
+			</pre>
+			</section>
+		</article>
+		
+		<article>
+			<h3>
+			Sorting textures
+			</h3>
+			<section>
+			<pre>
+<b>toDraw.sort(function(a, b){
+  return a.posZ - b.posZ;
+});
+
+for(var i=0; i&lt;toDraw.length; i++){
+  var item = toDraw[i];</b>
+  camera.screen.drawImage(sprite, 
+    0, 0, sprite.width, sprite.height, 
+<b>    item.posX, item.posY, item.width, item.height);
+}</b>
+			</pre>
+			</section>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#step4b'></iframe>
+		</article>
+		
+		<article>
+			<h2>
+				Rotating sprites
+			</h2>
+		</article>
+		
+		<article>
+			<h3>
+			Sprite sheet
+			</h3>
+			<section>
+			<div style="background:url(gfx/spritesheet.png); width:816px; height:384px; top: 2em; position:relative">
+				<div style="border: 1px solid blue; position: absolute; top: 96px; left: 144px; width: 48px; height: 48px"></div>
+			</div>
+			</section>
+		</article>
+		
+		
+		<article>
+			<h3>
+			New world
+			</h3>
+			<section>
+			<pre>
+var world = {
+  vertices:[
+    {x:140, y:20, z: 0, <b>ry:Math.PI*1, sprite:{
+      w:48,
+      h:48,
+      y:0
+    }</b>},
+...
+			</pre>
+			</section>
+		</article>
+		   
+		<article>
+			<h3>
+			3D Sprites (Pseudocode)
+			</h3>
+			<section>
+			<pre class="noprettyprint">
+for each vertex
+  offset from camera
+  rotate around each axis
+  if in front of camera
+    project onto screen
+    <b>calculate angle</b>
+    store in list
+sort list
+for each item in list
+  <b>find image tile</b>
+  draw image on screen
+			</pre>
+			</section>
+		</article>
+		
+		<article>
+			<h3>
+			toDraw sprite
+			</h3>
+			<section>
+			<pre>
+		
+toDraw.push({
+  posX: posX - width / 2,
+  posY: posY - height / 2,
+  posZ: scale,
+  width: width,
+  height: height,
+<b>  sprite: vertex.sprite,
+  ry: camera.ry - vertex.ry,</b>
+});
+			</pre>
+			</section>
+		</article>
+		
+		<article>
+			<h3>
+			Calculating tile
+			</h3>
+			<section>
+			<pre>
+		
+for(var i=0; i&lt;toDraw.length; i++){
+  var item = toDraw[i];
+  
+<b>  var angle = (item.ry)%(Math.PI*2);
+  while(angle &lt; 0) angle += Math.PI*2;
+
+  var ratio = angle / (Math.PI*2) * sprite.width;
+  var x = (Math.round(ratio / item.sprite.w)*item.sprite.w);
+  x %= sprite.width;</b>
+  
+  camera.screen.drawImage(sprite, 
+<b>    x, item.sprite.y, item.sprite.w, item.sprite.h,</b>
+    item.posX, item.posY, item.width, item.height);
+}
+
+			</pre>
+			</section>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#step5'></iframe>
+		</article>
+		
+		<article>
+			<h2>
+				Wireframes
+			</h2>
+		</article>
+		
+		<article>
+			<h3>A new world</h3>
+			<section>
+			<pre>
+
+var world = {
+  <b>lines:[
+    {p1: 0, p2: 1},
+    {p1: 1, p2: 2},
+    {p1: 2, p2: 3},
+    {p1: 3, p2: 0}
+  ],</b>
+  vertices:[
+    {x:100, y:100, z: 100},
+    {x:-100, y:100, z: 100},
+    {x:-100, y:-100, z: 100},
+    {x:100, y:-100, z: 100},
+  ],
+			</pre>
+			</section>
+		</article>
+		   
+		<article>
+			<h3>
+			Wireframes (Pseudocode)
+			</h3>
+			<section>
+			<pre class="noprettyprint">
+for each vertex
+  offset from camera
+  rotate around each axis
+  project onto screen
+  <b>store in vertex
+for each line
+  if both vertices are in front of camera</b>
+    store line in list
+sort list
+for each line in list
+  <b>draw line</b>
+			</pre>
+			</section>
+		</article>
+		
+
+		<article>
+			<h3>The Render Function</h3>
+			<section>
+			<pre>
+for(var i=0; i&lt;world.vertices.length; i++){
+  var vertex = world.vertices[i];
+  ..
+  <b>vertex.posX = scale * d3x + camera.offsetX;
+  vertex.posY = scale * d3y + camera.offsetY;
+  vertex.posZ = scale;</b>
+}
+	
+<b>for(var i=0; i&lt;world.lines.length; i++){
+  var line = world.lines[i];
+  if(line.p1.posZ > 0 &amp;&amp; line.p2.posZ > 0){
+    toDraw.push({
+      posX1: line.p1.posX,
+      posY1: line.p1.posY,
+      posX2: line.p2.posX,
+      posY2: line.p2.posY,
+      posZ: (line.p1.posZ + line.p2.posZ)/2
+    });
+  }
+}</b></pre>
+			</section>
+		</article>
+		
+		<article>
+			<h3>Drawing Lines</h3>
+			<section>
+			<pre>
+toDraw.sort(function(a, b){
+  return a.posZ - b.posZ;
+});
+
+for(var i=0; i&lt;toDraw.length; i++){
+  <b>camera.screen.beginPath();
+  camera.screen.moveTo(toDraw[i].posX1, toDraw[i].posY1);
+  camera.screen.lineTo(toDraw[i].posX2, toDraw[i].posY2);
+  camera.screen.stroke();</b>
+}</b></pre>
+			</section>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#step6'></iframe>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#demo1'></iframe>
+		</article>
+		
+		<article>
+			<h2>
+				Polygons
+			</h2>
+		</article>
+		
+		<article>
+			<h3>Yet another world</h3>
+			<section>
+			<pre>
+
+var world = {
+  <b>triangles:[
+    {p1: 2, p2: 1, p3: 0, c:"#D00"},
+    {p1: 0, p2: 3, p3: 2, c:"#D00"},
+  ]</b>
+  vertices:[
+    {x:100, y:100, z: 100},
+    {x:-100, y:100, z: 100},
+    {x:-100, y:-100, z: 100},
+    {x:100, y:-100, z: 100},
+  ],
+			</pre>
+			</section>
+		</article>
+		   
+		<article>
+			<h3>
+			Polygons (Pseudocode)
+			</h3>
+			<section>
+			<pre class="noprettyprint">
+for each vertex
+  offset from camera
+  rotate around each axis
+  project onto screen
+  store in vertex
+for each <b>triangle</b>
+  if <b>all</b> vertices are in front of camera
+    store <b>triangle</b> in list
+sort list
+for each <b>triangle</b> in list
+  draw <b>triangle</b>
+			</pre>
+			</section>
+		</article>
+	  
+	  	<article>
+			<h3>Triangles</h3>
+			<section>
+			<pre>
+for(var i=0; i&lt;world.<b>triangles</b>.length; i++){
+  var <b>triangle</b> = world.<b>triangles</b>[i];
+  if(<b>triangle</b>.p1.posZ > 0 &amp;&amp; <b>triangle</b>.p2.posZ > 0 
+       <b>&amp;&amp; triangle.p3.posZ > 0</b>){
+    toDraw.push({
+      posX1: <b>triangle</b>.p1.posX,
+      posY1: <b>triangle</b>.p1.posY,
+      posX2: <b>triangle</b>.p2.posX,
+      posY2: <b>triangle</b>.p2.posY,
+      <b>posX3: triangle.p3.posX,</b>
+      <b>posY3: triangle.p3.posY,</b>
+      posZ: (<b>triangle</b>.p1.posZ + <b>triangle</b>.p2.posZ<b> + </b>
+	       <b>triangle.p3.posZ)/3</b>,
+      <b>color: triangle.c</b>
+    });
+  }
+}</pre>
+			</section>
+		</article>
+		
+		
+	  	<article>
+			<h3>Drawing Triangles</h3>
+			<section>
+			<pre>
+for(var i=0; i&lt;toDraw.length; i++){
+  camera.screen.beginPath();
+  <b>camera.screen.fillStyle = toDraw[i].color;</b>
+  camera.screen.moveTo(toDraw[i].posX1, toDraw[i].posY1);
+  camera.screen.lineTo(toDraw[i].posX2, toDraw[i].posY2);
+  <b>camera.screen.lineTo(toDraw[i].posX3, toDraw[i].posY3);
+  camera.screen.fill();</b>
+}</pre>
+			</section>
+		</article>
+		  
+		<article class='nobackground'>
+			<iframe src='demo.html#step7'></iframe>
+		</article>
+		   
+		<article>
+			<h3>
+			Bugfix #3 (Pseudocode)
+			</h3>
+			<section>
+			<pre class="noprettyprint">
+for each vertex
+  offset from camera
+  rotate around each axis
+  project onto screen
+  store in vertex
+for each triangle
+  if all vertices are in front of camera
+    <b>if polygon faces camera</b>
+      store triangle in list
+sort list
+for each triangle in list
+  draw triangle
+			</pre>
+			</section>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#figure2'></iframe>
+		</article>
+		
+		
+	  	<article>
+			<h3>Finding the normal vector</h3>
+			<section>
+			<pre>
+		
+var vector1 = {dx: triangle.p1.x - triangle.p2.x,
+               dy: triangle.p1.y - triangle.p2.y,
+               dz: triangle.p1.z - triangle.p2.z};
+var vector2 = {dx: triangle.p3.x - triangle.p2.x,
+               dy: triangle.p3.y - triangle.p2.y,
+               dz: triangle.p3.z - triangle.p2.z};
+var crossProduct = {dx: vector1.dy*vector2.dz - vector1.dz*vector2.dy,
+                    dy: vector1.dz*vector2.dx - vector1.dx*vector2.dz,
+                    dz: vector1.dx*vector2.dy - vector1.dy*vector2.dx};
+			</pre>
+			</section>
+		</article>
+		
+	  	<article>
+			<h3>Backface Culling</h3>
+			<section>
+			<pre>
+var cameraVector =  
+  {dx: (camera.x - (triangle.p1.x + triangle.p2.x + triangle.p3.x)/3),
+   dy: (camera.y - (triangle.p1.y + triangle.p2.y + triangle.p3.y)/3),
+   dz: (camera.z - (triangle.p1.z + triangle.p2.z + triangle.p3.z)/3)};
+
+var dp = crossProduct.dx * cameraVector.dx + 
+         crossProduct.dy * cameraVector.dy + 
+         crossProduct.dz * cameraVector.dz;
+
+if(dp > 0){
+  toDraw.push({
+  ...
+			</pre>
+			</section>
+		</article>
+		
+		<article class='nobackground'>
+			<iframe src='demo.html#step7b'></iframe>
+		</article>
+		
+		<article>
+			<h2>Light</h2>
+		</article>
+		   
+		<article class='nobackground'>
+			<iframe src='demo.html#figure3'></iframe>
+		</article>
+		
+		<article>
+			<h3>
+			Shading (Pseudocode)
+			</h3>
+			<section>
+			<pre class="noprettyprint">
+for each vertex
+  offset from camera
+  rotate around each axis
+  project onto screen
+  store in vertex
+for each triangle
+  if all vertices are in front of camera
+    if polygon faces camera
+      <b>calculate shade</b>
+      store triangle in list
+sort list
+for each triangle in list
+  draw triangle
+  <b>draw shade</b>
+			</pre>
+			</section>
+		</article>
+		
+	  	<article>
+			<h3>Point light</h3>
+			<section>
+			<pre>
+var dp = crossProduct.dx * cameraVector.dx + 
+         crossProduct.dy * cameraVector.dy + 
+         crossProduct.dz * cameraVector.dz;
+
+<b>var length1 = Math.sqrt(cameraVector.dx * cameraVector.dx + 
+                        cameraVector.dy * cameraVector.dy + 
+                        cameraVector.dz * cameraVector.dz);
+var length2 = Math.sqrt(crossProduct.dx * crossProduct.dx + 
+                        crossProduct.dy * crossProduct.dy + 
+                        crossProduct.dz * crossProduct.dz);
+dp = dp/length1/length2;</b>
+if(dp > 0){
+  toDraw.push({
+    ...
+    color: triangle.c,
+    <b>shade: 1-dp</b>
+  });</pre>
+			</section>
+		</article>
+		
+		
+	  	<article>
+			<h3>Drawing Shade</h3>
+			<section>
+			<pre>
+camera.screen.lineTo(toDraw[i].posX3, toDraw[i].posY3);
+camera.screen.fill();
+<b>camera.screen.fillStyle = "rgba(0, 0, 0,"+toDraw[i].shade+")";
+camera.screen.fill();</b>
+</pre>
+			</section>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#step7c'></iframe>
+		</article>
+	  
+		<article class='nobackground'>
+			<iframe src='demo.html#demo2'></iframe>
+		</article>
+	  
+		
+		<article>
+			<h3>Now what?</h3>
+			<ul>
+				<li><a href="../Origami3D/examples/earthOrbit.html">Textured Polygons</a>
+				<li><a href="../Origami3D/examples/ripples.html">Shaded Textured Polygons</a>
+				<li><a href="../Origami3D/examples/mode7.html">Mode 7 Raycasting</a>
+				<li><a href="../Origami3D/examples/raycasting.html">Wolfenstein Raycasting</a>
+				<li><a href="http://projects.mariusgundersen.net/DoomHTML">Multiplayer Wolfenstein</a>
+			</ul>
+		</article>
+	  
+		<article>
+			<h3>Lessons Learned</h3>
+			<ul>
+				<li>JavaScript is fast!
+				<li>Drawing is slow</li>
+				<ul>
+					<li>Don't draw what you don't see
+					<li>Draw small images
+					<li>ctx.clip() is your friend
+					</ul>
+			</ul>
+		</article>
+	  
+		<article>
+			<h2>Thank You</h2>
+		</article>
+		
+	  
+	  
+	  
+	  
+
+	</section>
+
+	</body>
+</html>

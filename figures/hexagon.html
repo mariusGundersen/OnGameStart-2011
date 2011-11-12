@@ -1,0 +1,96 @@
+
+<body>
+<style>
+*{
+  margin:0;
+  padding:0
+}
+</style>
+<canvas class="bottomLeft" width="320" height="240" id="c" style="margin:0; padding:0"></canvas>
+<script>
+	var canvas = document.getElementById("c");
+	var ctx = canvas.getContext("2d");
+	ctx.fillStyle="red";
+	ctx.lineStyle="black";
+	
+	var step = 0;
+	var diff = 0;
+	var dest = 0;
+	var MAX = 100;
+	var centerX=160, cy=120, l=50;
+	var cl = Math.cos(60*Math.PI/180)*l;
+	var sl = Math.sin(60*Math.PI/180)*l;
+	function drawHexagon(pos){
+	  var cx = centerX + pos;
+	  ctx.moveTo(cx - sl, cy - cl);
+	  ctx.lineTo(cx - sl, cy + cl);
+	  
+	  ctx.moveTo(cx + sl, cy - cl);
+	  ctx.lineTo(cx + sl, cy + cl);
+	  
+	  ctx.moveTo(cx + sl, cy - cl);
+	  ctx.lineTo(cx, cy - l);
+	  
+	  ctx.moveTo(cx - sl, cy - cl);
+	  ctx.lineTo(cx, cy - l);
+	  
+	  ctx.moveTo(cx + sl, cy +cl);
+	  ctx.lineTo(cx, cy + l);
+	  
+	  ctx.moveTo(cx - sl, cy + cl);
+	  ctx.lineTo(cx, cy + l);
+	}
+	function drawY(pos){
+	  var cx = centerX + pos;
+	  ctx.moveTo(cx - sl, cy - cl);
+	  ctx.lineTo(cx, cy);
+	  
+	  ctx.moveTo(cx + sl, cy - cl);
+	  ctx.lineTo(cx, cy);
+	  
+	  ctx.moveTo(cx, cy);
+	  ctx.lineTo(cx, cy + l);
+	}
+	
+	function doFrame(){
+	  
+	  if(step + diff != dest){
+		step += diff;
+	  }else{
+		step = dest;
+		diff = 0;
+	  }
+	  ctx.clearRect(0, 0, 320, 240);
+	  ctx.beginPath();
+	  drawHexagon(step - MAX);
+	  drawY(MAX - step);
+	  
+	  ctx.stroke();
+	  (window.requestAnimFrame || function(){})(doFrame);
+	}
+	canvas.addEventListener("click", function(){
+		if(dest == MAX){
+			diff = -1;
+			dest = 0;
+		}else{
+			diff = 1;
+			dest = MAX;
+		}
+	}, false);
+	
+	window.requestAnimFrame = (function(){
+      return  window.requestAnimationFrame       || 
+              window.webkitRequestAnimationFrame || 
+              window.mozRequestAnimationFrame    || 
+              window.oRequestAnimationFrame      || 
+              window.msRequestAnimationFrame     || 
+              function(/* function */ callback, /* DOMElement */ element){
+                window.setTimeout(callback, 1000 / 60);
+              };
+    })();
+	
+	doFrame();
+	
+	
+</script>
+</html>

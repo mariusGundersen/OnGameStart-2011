@@ -1,0 +1,276 @@
+
+<body>
+<style>
+*{
+  margin:0;
+  padding:0
+}
+</style>
+<canvas class="bottomLeft" width="780" height="620" id="c" style="margin:0; padding:0"></canvas>
+<script>
+	var canvas = document.getElementById("c");
+	var ctx = canvas.getContext("2d");
+	ctx.fillStyle="black";
+	ctx.font = "20px sans-serif";
+	ctx.textBaseline = "top";
+	ctx.lineStyle="black";
+	
+	var step = 0;
+	var MAX = 100;
+	var cx=780/2, cy=720/2, l=50;
+	var cl = Math.cos(60*Math.PI/180)*l;
+	var sl = Math.sin(60*Math.PI/180)*l;
+	
+	var bird = new Image();
+	bird.src = "bird.jpg";
+	
+	var plane = new Image();
+	plane.src = "plane.jpg";
+	
+	var sMan = new Image();
+	sMan.src = "superman.jpg";
+	
+	var birdX = cx/1.5;
+	var planeX = cx*2-200;
+	var sManX = cx*1.33 - 100;
+	
+	var rise = 2/4;
+	
+	function drawEye(){
+		ctx.moveTo(cx/4 + sl, cy + cl);
+		ctx.lineTo(cx/4, cy);
+		ctx.lineTo(cx/4 + sl, cy - cl);
+		ctx.arc(cx/4, cy, l*2/3, -30*Math.PI/180, -330*Math.PI/180, false);
+		ctx.moveTo(cx*1.5, cy);
+		ctx.lineTo(cx/4+l*2/3, cy);
+	}
+	function drawSmallMan(w){
+		var y = cy - rise*(birdX - cx/4)
+		ctx.drawImage(sMan, birdX - sMan.width/8*w, y - sMan.height/8, sMan.width/4*w, sMan.height/4);
+	}
+	function drawBird(w){
+		var y = cy - rise*(birdX - cx/4)
+		ctx.drawImage(bird, birdX - bird.width/4*w, y - bird.height/4, bird.width/2*w, bird.height/2);
+	}
+	function drawPlane(){
+		var y = cy - rise*(planeX - cx/4)
+		ctx.drawImage(plane, planeX - plane.width/4, y - plane.height/4, plane.width/2, plane.height/2);
+	
+	}
+	function drawSuperman(){
+		var y = cy - rise*(sManX - cx/4)
+		ctx.drawImage(sMan, sManX - sMan.width/4, y - sMan.height/4, sMan.width/2, sMan.height/2);
+	}
+	function drawLine(){
+		ctx.moveTo(cx/4, cy);
+		var y = cy - rise*(cx*2-200 - cx/4)
+		ctx.lineTo(cx*2-200, y);
+	}
+	function drawWindow(){
+		ctx.moveTo(birdX, cy - 200);
+		ctx.lineTo(birdX, cy + 200);
+	}
+	
+	
+	function drawSimplified(){
+		var y = cy - rise*(birdX - cx/4)
+		ctx.moveTo(birdX, cy);
+		ctx.lineTo(birdX, y);
+		
+		
+		ctx.moveTo(cx/4, cy);
+		ctx.lineTo(sManX, cy);
+		
+		y = cy - rise*(sManX - cx/4)
+		ctx.moveTo(cx/4, cy);
+		ctx.lineTo(sManX, y);
+		
+		ctx.moveTo(sManX, cy);
+		ctx.lineTo(sManX, y);
+		
+	}
+	
+	function drawHorArrow(x1, y, x2, h){
+		ctx.moveTo(x1, y + h);
+		ctx.lineTo(x1, y - h);
+		//ctx.moveTo(x1 + h, y + h);
+		//ctx.lineTo(x1, y);
+		//ctx.lineTo(x1 + h, y - h);
+		ctx.moveTo(x1, y);
+		ctx.lineTo(x2, y);
+		//ctx.lineTo(x2 - h, y + h);
+		//ctx.moveTo(x2, y);
+		//ctx.lineTo(x2 - h, y - h);
+		ctx.moveTo(x2, y + h);
+		ctx.lineTo(x2, y - h);
+	}
+	
+	function drawVerArrow(y1, x, y2, w){
+		ctx.moveTo(x - w, y1);
+		ctx.lineTo(x + w, y1);
+		
+		ctx.moveTo(x - w, y2);
+		ctx.lineTo(x + w, y2);
+		
+		ctx.moveTo(x, y2);
+		ctx.lineTo(x, y1);
+	}
+	
+	
+	
+	function drawXYZ(step){
+		
+		ctx.textAlign = "left";
+		ctx.textBaseline = "top";
+		
+		y = cy - rise*(sManX - cx/4)
+		if(step > 0){
+			ctx.fillText("Z", birdX, cy+80);
+			drawHorArrow(cx/4, cy+80, sManX, 20);
+		}
+		if(step > 2){
+			ctx.fillText("D", birdX/2 + cx/8, cy+30);
+			drawHorArrow(cx/4, cy+30, birdX, 20);
+		}
+		
+		ctx.textBaseline = "middle";
+		
+		if(step > 1){
+			ctx.fillText("Y", sManX + 30, cy/2 + y/2);
+			drawVerArrow(cy, sManX+30, y, 20);
+		}
+		
+		
+		y = cy - rise*(birdX - cx/4)
+		if(step > 3){
+			ctx.fillText("Yp", birdX + 30, cy/2 + y/2);
+			
+			drawVerArrow(cy, birdX+30, y, 20);
+		}
+		
+	}
+	
+	function drawRatio(){
+		ctx.textBaseline = "top";
+		ctx.textAlign = "center";
+		
+		var x = 600;
+		var y = cy/2 - 70;
+		ctx.fillText("Yp", x, y);
+		ctx.fillText("D", x, y+30);
+		ctx.moveTo(x+20, y+25);
+		ctx.lineTo(x-20, y+25);
+		
+		ctx.fillText("=", x+40, y+15);
+		
+		ctx.fillText("Y", x+80, y);
+		ctx.fillText("Z", x+80, y+30);
+		ctx.moveTo(x+60, y+25);
+		ctx.lineTo(x+100, y+25);
+	}
+	
+	function drawYFormula(){
+		ctx.textBaseline = "top";
+		ctx.textAlign = "center";
+		
+		var x = 600;
+		var y = cy/2 + 70;
+		ctx.fillText("Yp", x, y + 15);
+		
+		ctx.fillText("=", x+40, y+15);
+		
+		ctx.fillText("D", x+80, y);
+		ctx.fillText("Z", x+80, y+30);
+		ctx.moveTo(x+60, y+25);
+		ctx.lineTo(x+100, y+25);
+		ctx.fillText("Y", x+110, y+15);
+	}
+	
+	function drawXFormula(){
+		ctx.textBaseline = "top";
+		ctx.textAlign = "center";
+		
+		var x = 600;
+		var y = cy/2 + 140;
+		ctx.fillText("Xp", x, y + 15);
+		
+		ctx.fillText("=", x+40, y+15);
+		
+		ctx.fillText("D", x+80, y);
+		ctx.fillText("Z", x+80, y+30);
+		ctx.moveTo(x+60, y+25);
+		ctx.lineTo(x+100, y+25);
+		ctx.fillText("X", x+110, y+15);
+	}
+	
+	function doFrame(dir){
+		ctx.clearRect(0, 0, cx*2, cy*2);
+		ctx.beginPath();
+		
+		
+		if(step < MAX){
+			step += dir;
+		}else{
+			step = 0;
+		}
+		
+		if(step < 9){
+			drawEye();
+			if(step > 1 && step < 6){
+				drawBird(1);
+			}
+			if(step > 6){
+				drawSmallMan(1);
+			}
+			if(step > 2 && step < 6){
+				drawPlane();
+			}
+			if(step > 3){
+				drawSuperman();
+			}
+			if((step > 4 && step < 6) || step > 7){
+				drawLine();
+			}
+			if(step > 5){
+				drawWindow();
+			}
+		}else{
+			drawSimplified();
+			if(step > 9){
+				drawXYZ(step - 9);
+			}
+			if(step > 13){
+				drawRatio();
+			}
+			if(step > 14){
+				drawYFormula();
+			}
+			if(step > 15){
+				drawXFormula();
+			}
+		}
+		ctx.stroke();
+
+	}
+	doFrame(0);
+	canvas.addEventListener("mousedown", function(e){
+		doFrame(e.button == 0 ? 1 : -1);
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
+	}, true);
+	
+	window.requestAnimFrame = (function(){
+      return  window.requestAnimationFrame       || 
+              window.webkitRequestAnimationFrame || 
+              window.mozRequestAnimationFrame    || 
+              window.oRequestAnimationFrame      || 
+              window.msRequestAnimationFrame     || 
+              function(/* function */ callback, /* DOMElement */ element){
+                window.setTimeout(callback, 1000 / 60);
+              };
+    })();
+	
+	
+</script>
+</html>

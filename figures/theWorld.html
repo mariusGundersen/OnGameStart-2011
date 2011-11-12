@@ -1,0 +1,247 @@
+
+<body>
+<style>
+*{
+  margin:0;
+  padding:0
+}
+</style>
+<canvas class="bottomLeft" width="780" height="620" id="c" style="margin:0; padding:0; position: relative"></canvas>
+<script>
+
+var canvas = document.getElementById("c");
+var ctx = canvas.getContext("2d");
+ctx.fillStyle="black";
+ctx.font = "20px sans-serif";
+ctx.textBaseline = "middle";
+ctx.textAlign = "center";
+ctx.lineStyle="black";
+
+var mouse = {x:0, y:0};
+
+canvas.addEventListener("mousemove", function(e){
+	mouse.x = e.layerX;
+	mouse.y = e.layerY;
+}, false);
+
+
+var onEnterFrame = function(t){
+	camera.screen.clearRect(0, 0, camera.width, camera.height);
+	camera.screen.strokeStyle = "red";
+	
+	camera.ry = -(mouse.x/camera.width - 0.5)*Math.PI*2;
+	camera.rx = (mouse.y/camera.height - 0.5)*Math.PI;
+	
+	camera.y = -Math.sin(camera.rx)*900;
+	ryRadius = Math.cos(camera.rx)*900;
+	
+	camera.x = Math.sin(camera.ry)*ryRadius;
+	camera.z = -Math.cos(camera.ry)*ryRadius;
+	
+	render(world, camera);
+	
+	window.requestAnimFrame(onEnterFrame);
+};
+var onGameStart = function(e){			
+	
+	
+	for(var i=0; i<world.lines.length; i++){
+		var line = world.lines[i];
+		line.p1 = world.vertices[line.p1];
+		line.p2 = world.vertices[line.p2];
+	}
+	for(var i=0; i<world.points.length; i++){
+		var point = world.points[i];
+		point.p = world.vertices[point.p];
+	}
+	for(var i=0; i<world.texts.length; i++){
+		var text = world.texts[i];
+		text.p = world.vertices[text.p];
+	}
+	
+	onEnterFrame(0);
+	
+};
+
+
+function render(world, camera){
+	var toDraw = [];
+
+	for(var i=0; i<world.vertices.length; i++){
+		var vertex = world.vertices[i];
+		
+		var dx = vertex.x - camera.x;
+		var dy = vertex.y - camera.y;
+		var dz = vertex.z - camera.z;
+		
+		var d1x = Math.cos(camera.ry)*dx + Math.sin(camera.ry)*dz;
+		var d1y = dy;
+		var d1z = Math.cos(camera.ry)*dz - Math.sin(camera.ry)*dx;
+		
+		var d2x = d1x;
+		var d2y = Math.cos(camera.rx)*d1y - Math.sin(camera.rx)*d1z;
+		var d2z = Math.cos(camera.rx)*d1z + Math.sin(camera.rx)*d1y;
+		
+		var d3x = Math.cos(camera.rz)*d2x + Math.sin(camera.rz)*d2y;
+		var d3y = Math.cos(camera.rz)*d2y - Math.sin(camera.rz)*d2x;
+		var d3z = d2z;
+		
+	
+		var scale = camera.depth / d3z;	
+		vertex.posX = scale * d3x + camera.offsetX;
+		vertex.posY = scale * d3y + camera.offsetY;
+		vertex.posZ = scale;
+	}
+	
+	for(var i=0; i<world.lines.length; i++){
+		var line = world.lines[i];
+		if(line.p1.posZ > 0 && line.p2.posZ > 0){
+			toDraw.push({
+				type: "line",
+				posX1: line.p1.posX,
+				posY1: line.p1.posY,
+				posX2: line.p2.posX,
+				posY2: line.p2.posY,
+				posZ: (line.p1.posZ + line.p2.posZ)/2,
+				color: line.c || "#333",
+			});
+		}
+	}
+	
+	for(var i=0; i<world.points.length; i++){
+		var point = world.points[i];
+		if(point.p.posZ){
+			toDraw.push({
+				type: "point",
+				posX: point.p.posX,
+				posY: point.p.posY,
+				posZ: point.p.posZ,
+				color: point.c || "red",
+			});
+		}
+	}
+	
+	for(var i=0; i<world.texts.length; i++){
+		var text = world.texts[i];
+		if(text.p.posZ){
+			toDraw.push({
+				type: "text",
+				posX: text.p.posX,
+				posY: text.p.posY,
+				posZ: text.p.posZ,
+				text: text.t,
+				color: text.c || "#333",
+			});
+		}
+	}
+	
+	toDraw.sort(function(a, b){
+		return a.posZ - b.posZ;
+	});
+	
+	for(var i=0; i<toDraw.length; i++){
+		var item = toDraw[i];
+		camera.screen.beginPath();
+		if(item.type == "line"){
+			camera.screen.strokeStyle = item.color;
+			camera.screen.moveTo(item.posX1, item.posY1);
+			camera.screen.lineTo(item.posX2, item.posY2);
+			camera.screen.stroke();
+		}else if(item.type == "point"){
+			camera.screen.fillStyle = item.color;
+			camera.screen.fillRect(item.posX - 5*item.posZ, item.posY - 5*item.posZ, 10*item.posZ, 10*item.posZ);
+		}else if(item.type == "text"){
+			camera.screen.fillStyle = item.color;
+			camera.screen.fillText(item.text, item.posX, item.posY);
+		}
+	}
+}
+
+
+var world = {
+	vertices:[
+		{x:100, y:100, z: 100},
+		{x:-100, y:100, z: 100},
+		{x:-100, y:-100, z: 100},
+		{x:100, y:-100, z: 100},
+		{x:100, y:100, z: -100},
+		{x:-100, y:100, z: -100},
+		{x:-100, y:-100, z: -100},
+		{x:100, y:-100, z: -100},
+		
+		{x: 50, y:40, z: -500},
+		{x: -50, y:40, z: -500},
+		{x: -50, y:-40, z: -500},
+		{x: 50, y:-40, z: -500},
+		{x: 0, y:0, z: -600},
+		
+		{x: 0, y:0, z: -400},
+		{x: 0, y:200, z: -600},
+		{x: 200, y:0, z: -600},
+		
+	],
+	points:[
+		{p:0},
+		{p:1},
+		{p:2},
+		{p:3},
+		{p:4},
+		{p:5},
+		{p:6},
+		{p:7}
+	],
+	texts:[
+		{p:13, t:"Z", c:"#D00"},
+		{p:14, t:"Y", c:"#0C0"},
+		{p:15, t:"X", c:"#00D"},
+	],
+	lines:[
+		{p1: 8, p2: 9, c:"#000"},
+		{p1: 9, p2: 10, c:"#000"},
+		{p1: 10, p2: 11, c:"#000"},
+		{p1: 11, p2: 8, c:"#000"},
+		
+		{p1: 8, p2: 12, c:"#666"},
+		{p1: 9, p2: 12, c:"#666"},
+		{p1: 10, p2: 12, c:"#666"},
+		{p1: 11, p2: 12, c:"#666"},
+		
+		
+		{p1: 12, p2: 13, c:"#D00"},
+		{p1: 12, p2: 14, c:"#0C0"},
+		{p1: 12, p2: 15, c:"#00D"}
+		
+	]
+};
+
+var camera = {
+	x: 0,
+	y: 0,
+	z: 400,
+	rx: 0,
+	ry: 0,
+	rz: 0,
+	depth: 350,
+	screen: ctx,
+	width: canvas.width,
+	height: canvas.height,
+	offsetX: canvas.width/2,
+	offsetY: canvas.height/2
+}
+
+
+window.requestAnimFrame = (function(){
+  return  window.requestAnimationFrame       || 
+		  window.webkitRequestAnimationFrame || 
+		  window.mozRequestAnimationFrame    || 
+		  window.oRequestAnimationFrame      || 
+		  window.msRequestAnimationFrame     || 
+		  function(/* function */ callback, /* DOMElement */ element){
+			window.setTimeout(callback, 1000 / 60);
+		  };
+})();
+
+onGameStart(0);
+
+</script>
+</html>
