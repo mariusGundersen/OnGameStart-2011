@@ -1,0 +1,66 @@
+<!doctype html>
+<body>
+<style>
+*{
+  margin:0;
+  padding:0
+  display: block;
+}
+@-webkit-keyframes wobble{
+	from{
+		-webkit-transform: rotateY(0deg);
+	}
+	to{
+		-webkit-transform: rotateY(360deg);
+	}
+}
+
+body{
+	padding: 120px;
+	-webkit-perspective: 600px;
+	-webkit-perspective-origin: 50% 50%;
+	overflow: hidden;
+}
+div{
+	position: relative;
+	text-align: center;
+	display: block;
+	height: 126px;
+	-webkit-transform-style: preserve-3d;
+	-webkit-animation: wobble 9s infinite linear;
+	-webkit-transform-origin: 50% 0;
+}
+div *{
+	position: absolute;
+	width: 126px;
+	height: 126px;
+	display: inline-block;
+}
+img{
+	-webkit-transform: translateZ(63px);
+	border: 1px solid black;
+}
+button{
+	padding: 0;
+	-webkit-transform: translateX(63px) rotateY(90deg);
+}
+p{
+	background: white;
+	-webkit-transform: translateZ(-63px) rotateY(180deg);
+	border: 1px solid black;
+}
+span{
+	background: rgba(128,168,255,0.6);
+	-webkit-transform: translateX(-63px) rotateY(270deg);
+	border: 1px solid black;
+}
+</style>
+<body>
+	<div>
+		<img src="bird.jpg" />
+		<button></button>
+		<p>Tekst som snurrer!</p>
+		<span></span>
+	</div>
+</body>
+</html>
